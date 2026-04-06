@@ -6,6 +6,7 @@ import { dashboardMetrics as initialData, getInitialStatusArray } from './dashbo
 import QualityPage from './pages/Quality';
 import SafetyPage from './pages/Safety';
 import Health from './pages/Health';
+import DeliveryPage from './pages/Delivery';
 import LoginPage from './pages/LoginPage';
 import HodDashboard from './pages/HodDashboard';
 import IdeaPage from './pages/Idea';
@@ -108,9 +109,13 @@ function App() {
 
           {/* Department pages */}
           <Route path="/q" element={<QualityPage />} />
+          <Route path="/q/:shift" element={<QualityPage />} />
           <Route path="/s" element={<SafetyPage />} />
+          <Route path="/s/:shift" element={<SafetyPage />} />
           <Route path="/h" element={<Health />} />
+          <Route path="/h/:shift" element={<Health />} />
           <Route path="/d" element={<DeliveryPage />} />
+          <Route path="/d/:shift" element={<DeliveryPage />} />
           <Route path="/i" element={<IdeaPage />} />
 
           {/* HOD-only portal */}

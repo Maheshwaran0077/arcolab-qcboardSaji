@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // Added for navigation
 import { Plus, X, Save, ChevronLeft, ChevronRight, Lock, CheckCircle2, ShieldAlert } from 'lucide-react';
 import axios from 'axios';
 
-const Health = () => {
+const Health = ({ shift }) => {
   const navigate = useNavigate();
   
   // --- STRICT PERMISSION LOGIC ---
@@ -62,7 +62,7 @@ const Health = () => {
     const fetchMonthData = async () => {
       try {
         const { data } = await axios.get(`http://localhost:5000/api/health`, {
-          params: { month: currentMonthName, year: 2026, dept: "COMMON", shift: "1" }
+          params: { month: currentMonthName, year: 2026, dept: "COMMON", shift: shift || "1" }
         });
         if (data?.days?.length > 0) {
           setAllMonthsData(prev => ({ ...prev, [currentMonthName]: data.days }));
@@ -83,7 +83,7 @@ const Health = () => {
       month: currentMonthName,
       year: 2026,
       dept: "COMMON",
-      shift: "1",
+      shift: shift || "1",
       date: selectedDay.date,
       ...formData
     };
@@ -155,7 +155,7 @@ const Health = () => {
 
       <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900">Health Portal</h1>
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900">Health</h1>
           <div className="flex items-center gap-2 mt-1">
             <span className={`h-2 w-2 rounded-full animate-pulse ${canUpdate ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
             <p className="text-slate-500 font-bold uppercase tracking-[0.15em] text-[10px]">
@@ -169,6 +169,20 @@ const Health = () => {
           <button onClick={() => setCurrentMonthIndex(prev => (prev === 11 ? 0 : prev + 1))} className="p-2.5 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-slate-900 transition-all"><ChevronRight size={20}/></button>
         </div>
       </header>
+
+      {/* Shift Header */}
+      {shift && (
+        <div className="mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
+            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+              Health — Shift {shift}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
+              Arcolab Continuous Improvement System
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* GRID */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Star, Maximize2,
   Edit3, X, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
+import ShiftTabs from '../components/ShiftTabs';
 
 const API_BASE = 'http://localhost:5000/api/health';
 
@@ -12,9 +13,10 @@ const MONTHS = ['January','February','March','April','May','June',
 
 const Health = () => {
   const navigate  = useNavigate();
+  const params    = useParams();
   const user      = JSON.parse(localStorage.getItem('userInfo') || 'null');
   const dept      = user?.department || 'COMMON';
-  const shift     = user?.shift || '1';
+  const shift     = params.shift || user?.shift || '1';
 
   const [viewDate, setViewDate]     = useState(new Date());
   const [days, setDays]             = useState([]);
@@ -152,6 +154,10 @@ const Health = () => {
           Update {monthName}
         </button>
       </nav>
+
+      <div className="px-6">
+        <ShiftTabs basePath="/h" currentShift={shift} />
+      </div>
 
       <main className="flex-1 grid grid-cols-12 gap-5 px-6 pb-6">
 

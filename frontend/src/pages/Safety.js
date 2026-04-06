@@ -12,7 +12,7 @@ import { dashboardMetrics as initialData } from '../dashboardData';
 
 const API_BASE_URL = 'http://localhost:5000/api/metrics';
 
-const SafetyPage = () => {
+const SafetyPage = ({ shift }) => {
   const navigate = useNavigate();
   
   // --- STRICT PERMISSION LOGIC ---
@@ -50,7 +50,8 @@ const SafetyPage = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch(API_BASE_URL);
+        const url = `${API_BASE_URL}?shift=${shift || '1'}`;
+        const response = await fetch(url);
         const dbData = await response.json();
         if (dbData?.length > 0) {
           const merged = initialData.map(blueprint => {
@@ -62,7 +63,7 @@ const SafetyPage = () => {
       } catch (error) { console.error(error); } finally { setLoading(false); }
     };
     fetchMetrics();
-  }, []);
+  }, [shift]);
 
   const sData = useMemo(() => {
     const found = metrics.find(m => m.letter === 'S') || initialData[2];
@@ -139,7 +140,7 @@ const SafetyPage = () => {
       const res = await fetch(`${API_BASE_URL}/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ letter: 'S', name: 'Safety', issueLogs: updatedLogs })
+        body: JSON.stringify({ letter: 'S', shift: shift || '1', name: 'Safety', issueLogs: updatedLogs })
       });
       if (res.ok) {
         const saved = await res.json();
@@ -165,6 +166,20 @@ const SafetyPage = () => {
           </button>
         )}
       </nav>
+
+      {/* Shift Header */}
+      {shift && (
+        <div className="px-4 mb-4">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
+            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+              Safety — Shift {shift}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
+              Arcolab Continuous Improvement System
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ... (rest of your layout code remains the same) ... */}
       <main className="grid grid-cols-12 gap-5 flex-1 px-4 pb-4 lg:overflow-hidden">

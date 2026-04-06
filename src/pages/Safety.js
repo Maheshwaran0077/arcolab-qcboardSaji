@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Star, Maximize2, X, ShieldAlert
 } from 'lucide-react';
@@ -8,6 +8,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import CircularTracker from '../components/CircularTracker';
+import ShiftTabs from '../components/ShiftTabs';
 import { dashboardMetrics as initialData } from '../dashboardData';
 
 const API_BASE = 'http://localhost:5000/api/metrics';
@@ -17,6 +18,9 @@ const MONTHS = ['January','February','March','April','May','June',
 
 const SafetyPage = () => {
   const navigate = useNavigate();
+  const params   = useParams();
+  const user     = JSON.parse(localStorage.getItem('userInfo') || 'null');
+  const shift    = params.shift || user?.shift || '1';
 
   const [loading, setLoading]         = useState(true);
   const [metrics, setMetrics]         = useState(initialData);
@@ -151,6 +155,9 @@ const SafetyPage = () => {
           Update {viewMonthName.slice(0, 3)}
         </button>
       </nav>
+      <div className="px-4 sm:px-6">
+        <ShiftTabs basePath="/s" currentShift={shift} />
+      </div>
 
       {/* ── Grid ── */}
       <main className="flex-1 grid grid-cols-12 gap-4 sm:gap-5 px-4 sm:px-6 pb-6 lg:overflow-hidden">

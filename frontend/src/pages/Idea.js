@@ -4,7 +4,7 @@ import { ChevronLeft, Lightbulb, Send, CheckCircle, Loader2, AlertCircle, Downlo
 
 const BENEFIT_OPTIONS = ['Safety', 'Quality', 'Cost', 'Delivery', 'Morale'];
 
-const Idea = () => {
+const Idea = ({ shift }) => {
   const navigate = useNavigate();
   const user     = JSON.parse(localStorage.getItem('userInfo') || 'null');
 
@@ -142,11 +142,25 @@ const Idea = () => {
   return (
     <div className="min-h-screen bg-[#F0F4F8] font-sans">
       <nav className="flex justify-between items-center px-6 py-4">
-        <button onClick={() => navigate('/')} className="flex items-center gap-1 text-slate-500 font-bold text-xs uppercase hover:text-emerald-600 transition-colors">
+        <button onClick={() => navigate(shift ? `/shift${shift}` : '/')} className="flex items-center gap-1 text-slate-500 font-bold text-xs uppercase hover:text-emerald-600 transition-colors">
           <ChevronLeft size={20} /> Back
         </button>
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ideation Portal</span>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ideation</span>
       </nav>
+
+      {/* Shift Header */}
+      {shift && (
+        <div className="px-6 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
+            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+              Ideation — Shift {shift}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
+              Arcolab Continuous Improvement System
+            </p>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-2xl mx-auto px-4 pb-16">
         <div className="flex items-center gap-4 mb-8 mt-2">

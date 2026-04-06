@@ -15,7 +15,7 @@ import { dashboardMetrics as initialData } from '../dashboardData';
 
 const API_BASE_URL = 'http://localhost:5000/api/metrics';
 
-const QualityPage = () => {
+const QualityPage = ({ shift }) => {
   const navigate = useNavigate();
   const reportRef = useRef(null);
   
@@ -64,7 +64,8 @@ const QualityPage = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch(API_BASE_URL);
+        const url = `${API_BASE_URL}?shift=${shift || '1'}`;
+        const response = await fetch(url);
         const dbData = await response.json();
         if (dbData?.length > 0) {
           const merged = initialData.map(blueprint => {
@@ -80,7 +81,7 @@ const QualityPage = () => {
       }
     };
     fetchMetrics();
-  }, []);
+  }, [shift]);
 
   const qData = useMemo(() => metrics.find(m => m.letter === 'Q') || initialData[0], [metrics]);
   const daysInViewMonth = useMemo(() => new Date(viewYear, viewDate.getMonth() + 1, 0).getDate(), [viewDate, viewYear]);
@@ -136,7 +137,7 @@ const QualityPage = () => {
       const res = await fetch(`${API_BASE_URL}/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...qData, issueLogs: updatedLogs })
+        body: JSON.stringify({ ...qData, shift: shift || '1', issueLogs: updatedLogs })
       });
       if (res.ok) {
         const saved = await res.json();
@@ -165,6 +166,20 @@ const QualityPage = () => {
           </button>
         )}
       </nav>
+
+      {/* Shift Header */}
+      {shift && (
+        <div className="px-4 sm:px-6 mb-4">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
+            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+              Quality — Shift {shift}
+            </h1>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
+              Arcolab Continuous Improvement System
+            </p>
+          </div>
+        </div>
+      )}
 
       <main ref={reportRef} className="flex-1 grid grid-cols-12 gap-4 sm:gap-5 px-4 sm:px-6 pb-6 lg:overflow-hidden bg-[#F0F4F8]">
         <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col items-center">
