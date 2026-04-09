@@ -2,10 +2,14 @@ require('dotenv').config();
 const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
+const dns =require('dns');
+
+dns.setServers(["1.1.1.1","8.8.8.8"])
+
 
 const metricRoutes   = require('./routes/metricRoutes');
 const userRoutes     = require('./routes/userRoutes');
-const healthRoutes   = require('./routes/healthRoutes');
+const healthRoutes   = require('./routes/healthRoutes');  
 const ideationRoutes = require('./routes/ideationRoutes');
 
 const app = express();
@@ -17,7 +21,7 @@ app.use('/api/metrics',   metricRoutes);
 app.use('/api/users',     userRoutes);
 app.use('/api/health',    healthRoutes);
 app.use('/api/ideation',  ideationRoutes);
-
+ 
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);

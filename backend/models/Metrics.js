@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
-
 const IssueLogSchema = new mongoose.Schema({
   date: String,
   rawDate: String,
-  reason: String,
-  incident: String,
-  affected: Number,
-  severity: String,
+  reason: String,   // Keep existing
+  incident: String, // Keep existing
+  affected: Number, // Keep existing
+  severity: String, // Keep existing
+  // NEW FIELDS
+  planned: { type: Number, default: 0 },
+  dispatched: { type: Number, default: 0 },
   timestamp: { type: Date, default: Date.now }
 }, { _id: false });
 
@@ -20,12 +22,10 @@ const ShiftDataSchema = new mongoose.Schema({
 const MetricSchema = new mongoose.Schema({
   letter: { type: String, required: true, unique: true },
   label: String,
-  // Top-level fields remain for home overview (existing data untouched)
   alerts: Number,
   success: Number,
   daysData: [String],
   issueLogs: [IssueLogSchema],
-  // Per-shift data stored as nested objects
   shifts: {
     '1': { type: ShiftDataSchema, default: () => ({ alerts: 0, success: 0, daysData: [], issueLogs: [] }) },
     '2': { type: ShiftDataSchema, default: () => ({ alerts: 0, success: 0, daysData: [], issueLogs: [] }) },

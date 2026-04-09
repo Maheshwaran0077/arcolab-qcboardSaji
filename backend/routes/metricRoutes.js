@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Metric = require('../models/Metrics');
+const metricController = require('../controller/metricController');
 
 // GET: Fetch all departments
 // Without ?shift  → returns raw docs (home dashboard overview)
@@ -77,5 +78,51 @@ router.post('/update', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.get('/metrics', async (req, res) => {
+  try {
+    const { shift } = req.query; // Active shift from frontend (1, 2, or 3)
+    const metrics = await Metric.find();
+    
+    // Map the metrics so the frontend receives the correct shift data
+    const localizedData = metrics.map(m => {
+      const shiftInfo = m.shifts[shift] || m.shifts['1'];
+      return {
+        ...m.toObject(),
+        alerts: shiftInfo.alerts,
+        success: shiftInfo.success,
+        daysData: shiftInfo.daysData,
+        issueLogs: shiftInfo.issueLogs
+      };
+    });
+    
+    res.json(localizedData);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
+router.post('/metrics/update', async (req, res) => {
+  try {
+    const { letter, shift, issueLogs } = req.body;
+
+    // We use a dynamic key: shifts.1.issueLogs, shifts.2.issueLogs, etc.
+    const updatePath = `shifts.${shift}.issueLogs`;
+    
+    const updatedMetric = await Metric.findOneAndUpdate(
+      { letter: letter },
+      { $set: { [updatePath]: issueLogs } },
+      { new: true, upsert: true }
+    );
+
+    // Return the specific shift data back to the frontend
+    const shiftData = updatedMetric.shifts[shift];
+    res.json({
+      ...updatedMetric.toObject(),
+      issueLogs: shiftData.issueLogs
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

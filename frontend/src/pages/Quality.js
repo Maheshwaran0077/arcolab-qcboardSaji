@@ -19,14 +19,15 @@ const QualityPage = ({ shift }) => {
   const navigate = useNavigate();
   const reportRef = useRef(null);
   
- const user = JSON.parse(localStorage.getItem('userInfo'));
-  const isSupervisor = user?.role === 'supervisor';
-  
-   const userDept = user?.department?.toUpperCase() || "";
-  
-   const isQualitySupervisor = isSupervisor && (userDept.includes('QUALITY') || userDept === 'Q');
+  const user = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userRole = user?.role?.toLowerCase();
+  const userDept = user?.department?.toUpperCase() || "";
 
-   const canUpdate = isQualitySupervisor;
+  // FIXED PERMISSIONS
+  const isSupervisor = userRole === 'supervisor';
+  const isSuperAdmin = userRole === 'superadmin';
+  const isQualityDept = userDept.includes('QUALITY') || userDept === 'Q';
+  const canUpdate = isSuperAdmin || (isSupervisor && isQualityDept);
 
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(initialData);
@@ -151,7 +152,6 @@ const QualityPage = ({ shift }) => {
 
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#F0F4F8] text-[#334155] font-sans flex flex-col relative">
-      
       <nav className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 py-4 bg-[#F0F4F8] gap-4">
         <button onClick={() => navigate('/')} className="flex items-center gap-1 text-[#475569] font-bold text-xs uppercase self-start sm:self-center hover:text-emerald-600 transition-colors">
           <ChevronLeft size={20} /> BACK TO DASHBOARD
@@ -167,21 +167,8 @@ const QualityPage = ({ shift }) => {
         )}
       </nav>
 
-      {/* Shift Header */}
-      {shift && (
-        <div className="px-4 sm:px-6 mb-4">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
-            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-              Quality — Shift {shift}
-            </h1>
-            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">
-              Arcolab Continuous Improvement System
-            </p>
-          </div>
-        </div>
-      )}
-
       <main ref={reportRef} className="flex-1 grid grid-cols-12 gap-4 sm:gap-5 px-4 sm:px-6 pb-6 lg:overflow-hidden bg-[#F0F4F8]">
+        {/* Left Section: Tracker */}
         <div className="col-span-12 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col items-center">
           <div className="flex items-center justify-between w-full mb-8 bg-[#F8FAFC] px-4 py-2 rounded-full border border-slate-100">
             <button onClick={() => handleMonthChange(-1)} className="text-emerald-500 hover:scale-110 transition p-1"><ChevronLeft size={24}/></button>
@@ -202,6 +189,7 @@ const QualityPage = ({ shift }) => {
           </div>
         </div>
 
+        {/* Center Section: Lists */}
         <div className="col-span-12 md:col-span-6 lg:col-span-4 flex flex-col gap-5 lg:overflow-hidden">
           <ChartCard title={`${viewMonthName} ALERT HISTORY`}>
             <div className="overflow-y-auto pr-2 custom-scrollbar max-h-[320px] min-h-[200px]">
@@ -215,7 +203,10 @@ const QualityPage = ({ shift }) => {
                 <tbody className="divide-y divide-slate-100">
                   {stats.alerts > 0 ? (
                     (qData.issueLogs || [])
-                      .filter(l => new Date(l.rawDate).getUTCMonth() === viewDate.getMonth())
+                      .filter(l => {
+                          const d = new Date(l.rawDate);
+                          return d.getUTCMonth() === viewDate.getMonth() && d.getUTCFullYear() === viewYear;
+                      })
                       .map((log, i) => (
                       <tr key={i} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3 font-bold text-slate-500">{log.date}</td>
@@ -259,6 +250,7 @@ const QualityPage = ({ shift }) => {
           </ChartCard>
         </div>
 
+        {/* Right Section: Charts */}
         <div className="col-span-12 md:col-span-6 lg:col-span-5 flex flex-col gap-5 lg:overflow-hidden">
           <ChartCard title={`${viewMonthName} DISTRIBUTION`}>
             <div className="h-[200px] sm:h-[220px] w-full">
@@ -304,7 +296,7 @@ const QualityPage = ({ shift }) => {
         <Download size={24} />
       </button>
 
-      {/* MODAL PROTECTION */}
+      {/* MODAL */}
       {isModalOpen && canUpdate && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[360px] p-6 sm:p-8 border border-slate-100">
@@ -332,7 +324,6 @@ const QualityPage = ({ shift }) => {
   );
 };
 
-// Sub-components
 const StatBox = ({ val, label, type }) => {
   const colors = {
     red: "bg-red-50 border-red-100 text-red-500",
@@ -359,4 +350,4 @@ const ChartCard = ({ title, children }) => (
   </div>
 );
 
-export default QualityPage; 
+export default QualityPage;

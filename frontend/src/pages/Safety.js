@@ -15,18 +15,17 @@ const API_BASE_URL = 'http://localhost:5000/api/metrics';
 const SafetyPage = ({ shift }) => {
   const navigate = useNavigate();
   
-  // --- STRICT PERMISSION LOGIC ---
-  const user = JSON.parse(localStorage.getItem('userInfo'));
-  const isSupervisor = user?.role === 'supervisor';
-  
-  // Clean up department string for comparison
+  // --- UPDATED PERMISSION LOGIC ---
+  const user = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const userRole = user?.role?.toLowerCase();
   const userDept = user?.department?.toUpperCase() || "";
+
+  const isSupervisor = userRole === 'supervisor';
+  const isSuperAdmin = userRole === 'superadmin';
+  const isSafetyDept = userDept.includes('SAFETY') || userDept === 'S';
   
-  // Only allow if user is Supervisor AND department is SAFETY or S
-  const isSafetySupervisor = isSupervisor && (userDept.includes('SAFETY') || userDept === 'S');
-  
-  // HODs can view but not update; only the Safety Supervisor sees the button
-  const canUpdate = isSafetySupervisor;
+  // Superadmin gets a "Master Pass"; Supervisor must be in Safety
+  const canUpdate = isSuperAdmin || (isSupervisor && isSafetyDept);
 
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState(initialData);
@@ -76,7 +75,7 @@ const SafetyPage = ({ shift }) => {
     return sData.issueLogs.filter(l => {
       if (!l.rawDate) return false;
       const d = new Date(l.rawDate);
-      return d.getMonth() === viewDate.getMonth() && d.getFullYear() === viewYear;
+      return d.getUTCMonth() === viewDate.getMonth() && d.getUTCFullYear() === viewYear;
     }).sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
   }, [sData.issueLogs, viewDate, viewYear]);
 
@@ -85,7 +84,7 @@ const SafetyPage = ({ shift }) => {
     return months.map((month, index) => {
       const monthLogs = sData.issueLogs.filter(l => {
         const d = new Date(l.rawDate);
-        return d.getMonth() === index && d.getFullYear() === viewYear;
+        return d.getUTCMonth() === index && d.getUTCFullYear() === viewYear;
       });
       return {
         name: month,
@@ -103,7 +102,7 @@ const SafetyPage = ({ shift }) => {
     const baseDays = Array(daysInViewMonth).fill("none");
     filteredLogs.forEach(log => {
       const d = new Date(log.rawDate);
-      const idx = d.getDate() - 1;
+      const idx = d.getUTCDate() - 1;
       if (idx >= 0 && idx < baseDays.length) {
         baseDays[idx] = log.incident === "No Incident" ? "success" : "fail";
       }
@@ -120,7 +119,6 @@ const SafetyPage = ({ shift }) => {
   }), [dynamicDaysData, filteredLogs]);
 
   const handleUpdateSafety = async () => {
-    // Double check permission before API call
     if (!canUpdate) return; 
 
     let updatedLogs = [...sData.issueLogs];
@@ -159,7 +157,6 @@ const SafetyPage = ({ shift }) => {
           <ChevronLeft size={20} /> BACK TO DASHBOARD
         </button>
         
-        {/* ONLY SHOW UPDATE BUTTON IF IT IS THE SAFETY SUPERVISOR */}
         {canUpdate && (
           <button onClick={() => setIsModalOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider shadow-lg transition-all active:scale-95">
             UPDATE {viewMonthName} SAFETY LOGS
@@ -167,7 +164,6 @@ const SafetyPage = ({ shift }) => {
         )}
       </nav>
 
-      {/* Shift Header */}
       {shift && (
         <div className="px-4 mb-4">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 text-center">
@@ -181,7 +177,6 @@ const SafetyPage = ({ shift }) => {
         </div>
       )}
 
-      {/* ... (rest of your layout code remains the same) ... */}
       <main className="grid grid-cols-12 gap-5 flex-1 px-4 pb-4 lg:overflow-hidden">
         {/* Left Panel */}
         <div className="col-span-12 lg:col-span-3 bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 flex flex-col items-center">
@@ -312,7 +307,7 @@ const SafetyPage = ({ shift }) => {
         </div>
       </main>
 
-      {/* MODAL (Protected by canUpdate check as well) */}
+      {/* MODAL */}
       {isModalOpen && canUpdate && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl border border-slate-100">
@@ -358,7 +353,7 @@ const SafetyPage = ({ shift }) => {
   );
 };
 
-// ... (Helper components stay exactly the same) ...
+// Helper Components
 const StatRow = ({ label, value, color }) => (
   <div className={`flex justify-between items-center p-4 rounded-xl border font-black uppercase text-[10px] ${color}`}>
     <span className="tracking-widest opacity-70">{label}</span>
